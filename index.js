@@ -31,9 +31,13 @@ async function main(isPredicacion) {
     firstParticipanWaitingRoom: { x: 685, y: 85 },
   };
   const browser = await puppeter.launch({
-    headless: false,
+    headless: true,
     userDataDir: "./browserData/",
   });
+  if(!zoomUser.email || !zoomUser.password){
+    console.error("Credenciales de usuario inválidas");
+    return;
+  }
   const page = await browser.newPage();
   page.setUserAgent(
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/101.0.4951.67 Safari/537.36"
@@ -61,18 +65,23 @@ async function main(isPredicacion) {
         try {
           await (
             await page.waitForSelector("#onetrust-accept-btn-handler", {
-              timeout: 2000,
+              timeout: 3000,
             })
           )?.click({ delay: 500 });
-        } catch (error) {}
+          delay(1000);
+        } catch (error) {
+          console.log("No se encontró cartel para aceptar cookies",error.message);
+        }
 
         //Rellenar formulario
-        await (await page.waitForSelector("#email", { timeout: 2000 })).click();
+        await (await page.waitForSelector("#email", { timeout: 3000 })).click({delay:500});
+        delay(1000);
         await page.keyboard.type(zoomUser.email);
-        delay(500);
+        delay(1000);
         await (
-          await page.waitForSelector("#password", { timeout: 2000 })
-        ).click();
+          await page.waitForSelector("#password", { timeout: 3000 })
+        ).click({delay:500});
+        delay(500);
         await page.keyboard.type(zoomUser.password);
         delay(500);
 
@@ -89,7 +98,9 @@ async function main(isPredicacion) {
           })
         ).click();
       }
-    } catch (error) {}
+    } catch (error) {
+      console.log(error.message);
+    }
 
     //Ir al la reunion de version de navegador
     await page.waitForSelector(htmlSelectors.openOnBrowser, { timeout: 10000 });
@@ -117,27 +128,32 @@ async function main(isPredicacion) {
     //Gestionar participantes
     console.log("Chequeando si hay participantes en sala de espera");
     while (true) {
-      await delay(2000);
+      await delay(5000);
       const waitingRoom = await page.$(htmlSelectors.waitingRoomList);
       if (waitingRoom) {
-        console.log("Si hay, aceptando participantes...");
+        console.log("Se han encontrado participantes esperando...");
+        const participantName = await page.$eval("#waitingRoom-li-0 > div > div > span > span",(element)=>element.textContent);
+        //return;
         page.mouse.move(
           coodinates.firstParticipanWaitingRoom.x,
           coodinates.firstParticipanWaitingRoom.y,
           { steps: 5 }
         );
-        page.mouse.click(
-          coodinates.firstParticipanWaitingRoom.x,
-          coodinates.firstParticipanWaitingRoom.y,
-          { delay: 500 }
-        );
+
+        //Precionar el boton admitir
+        try {
+          await (await page.waitForSelector("#waitingRoom-li-0 > div > span > div > div .btn")).click({delay:500, timeout:2000});
+          console.log(`Aceptando a "${participantName}"`);
+        } catch (error) {
+          console.log(`No se pudo admitir a ${participantName} quizas todavía está entrando.`)
+        }
       } else {
-        console.log("No hay participantes");
+        console.log(`No hay participantes en sala de espera. Ultima revisión: ${new Date().toLocaleString()}.`);
       }
     }
   } catch (error) {
-    console.log(error);
-    await page.screenshot({ path: "error.png", type: "png" });
+    console.log(error.message);
+    await page.screenshot({ path: "./errors/error.png", type: "png" });
   }
 }
 async function delay(ms) {
