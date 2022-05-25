@@ -1,7 +1,7 @@
 {
-  "name": "zoom-bot-web",
+  "name": "meeting-copilor",
   "version": "1.0.0",
-  "description": "",
+  "description": "Un bot para gestionar tus reuniones de Zoom",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",

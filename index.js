@@ -107,18 +107,18 @@ async function main(isPredicacion) {
     const openOnBrowserElement = await page.$(htmlSelectors.openOnBrowser);
     openOnBrowserElement.click();
 
-    await delay(5000);
+    await delay(8000);
 
     //Precionar boton de Mas Opciones
     console.log("Esperando boton de mas opciones");
-    await page.waitForSelector(htmlSelectors.moreOptions);
+    await page.waitForSelector(htmlSelectors.moreOptions,{timeout:5000});
     const moreOptionsButton = await page.$(htmlSelectors.moreOptions);
     moreOptionsButton.click({ delay: 500 });
     console.log("Precionando boton mas opciones");
 
     //Abrir panel de participantes
     console.log("Esperando boton de participantes");
-    await page.waitForSelector(htmlSelectors.participantsPanelButton);
+    await page.waitForSelector(htmlSelectors.participantsPanelButton,{timeout:5000});
     const participantsPanelButton = await page.$(
       htmlSelectors.participantsPanelButton
     );
